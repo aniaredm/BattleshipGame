@@ -310,7 +310,7 @@ class GameWindow(QMainWindow):
             self.position_label.setText("")
 
 class GUIPyQt(QMainWindow):
-    def __init__(self):
+    def __init__(self, game_logic):
         super().__init__()
         #self.game_logic = game_logic
         self.initUI()
