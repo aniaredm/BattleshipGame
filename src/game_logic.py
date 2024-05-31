@@ -1,45 +1,277 @@
+import random 
+
 class GameLogic:
     def __init__(self):
         self.board_size = 10
         self.player_board = [[0] * self.board_size for _ in range(self.board_size)]  # plansza gracza
-        self.enemy_board = [[0] * self.board_size for _ in range(self.board_size)]  # plansza przeciwnika
-        self.ships = {"Carrier": 5, "Battleship": 4, "Cruiser": 3, "Submarine": 3, "Destroyer": 2}  # słownik określający rodzaje statków i ich długość
-        self.player_ships = {ship: False for ship in self.ships}  # słownik określający, czy gracz umieścił już dany statek na planszy
+        self.computer_board = [[0] * self.board_size for _ in range(self.board_size)]  # plansza przeciwnika
+        self.player_guesses_board = [[0] * self.board_size for _ in range(self.board_size)]
+        self.computer_guesses_board = [[0] * self.board_size for _ in range(self.board_size)]
+        self.ships = {'Carrier: 5': 5, 'Battleship: 4': 4, 'Cruiser: 3': 3, 'Submarine: 3': 3, 'Destroyer: 2': 2}  # słownik określający rodzaje statków i ich długość
+        self.player_ships = {ship: False for ship in self.ships}  # słownik określający, czy statek gracza znajduje się na planszy
+        self.computer_ships = {ship: False for ship in self.ships}
+        self.hits = []  # list to store hits for the Target Phase
+
+    def set_ship_placement_mode(self, mode):
+        self.ship_placement_mode = mode
 
     def place_ship(self, ship, x, y, direction):
-        """
-        Umieszcza statek na planszy gracza.
-        :param ship: Nazwa statku.
-        :param x: Współrzędna x początkowego punktu umieszczenia statku.
-        :param y: Współrzędna y początkowego punktu umieszczenia statku.
-        :param direction: Kierunek umieszczenia statku ('H' dla poziomego, 'V' dla pionowego).
-        :return: True, jeśli udało się umieścić statek, False w przeciwnym razie.
-        """
-        pass
+        if self.ship_placement_mode:
+            if self.check_valid_placement(ship, x, y, direction, 1):
+                size = self.get_ship_size(ship)
+                ship_number = self.get_ship_number(ship)
+                # if self.player_ships[ship]:
+                #     ship_name = self.get_ship_name(ship_number)
+                #     self.remove_ship(ship_name)
+                if direction == 'horizontal':
+                    for i in range(size):
+                        #print("x: ", x, ", y: ", y, ", i: ", i , ", suma: ", x + i - 1)
+                        self.player_board[y - 1][x + i - 1] = ship_number
+                elif direction == 'vertical':
+                    for i in range(size):
+                        #print("x: ", x, ", y: ", y, ", i: ", i , ", suma: ", x + i - 1)
+                        self.player_board[y + i - 1][x - 1] = ship_number
+                print(f"Placed {ship} at position ({x}, {y}) with direction {direction}")
+                self.player_ships[ship] = True
+                #return True
+            else:
+                print(f"Invalid placement for {ship} at position ({x}, {y}) with direction {direction}")
+                #return False
+        else:
+            print("Ship placement mode is not enabled.")
+            #return False
+        
+    def remove_ship(self, ship_name):
+        ship = self.get_ship_by_name(ship_name)
+        ship_number = self.get_ship_number(ship)
+        for i in range(self.board_size):
+            for j in range(self.board_size):
+                if self.player_board[i][j] == ship_number:
+                    self.player_board[i][j] = 0
+        print('statek usuniety')
+        self.player_ships[ship] = True
+         
+    def get_ship_number(self, ship):
+        ship_numbers = {"Carrier: 5": 1, "Battleship: 4": 2, "Cruiser: 3": 3, "Submarine: 3": 4, "Destroyer: 2": 5}
+        number = ship_numbers.get(ship)
+        return number
+        
+    def get_ship_size(self, ship):
+        size = int(ship.split(':')[-1].strip())
+        return size
+    
+    def get_ship_name(self, ship_number):
+        ship_names = {1: 'Carrier: 5', 2: 'Battleship: 4', 3: 'Cruiser: 3', 4: 'Submarine: 3', 5: 'Destroyer: 2'}
+        name = ship_names.get(ship_number)
+        return name
 
-    def check_valid_placement(self, ship, x, y, direction):
-        """
-        Sprawdza, czy umieszczenie statku na danej pozycji jest możliwe.
-        :param ship: Nazwa statku.
-        :param x: Współrzędna x początkowego punktu umieszczenia statku.
-        :param y: Współrzędna y początkowego punktu umieszczenia statku.
-        :param direction: Kierunek umieszczenia statku ('H' dla poziomego, 'V' dla pionowego).
-        :return: True, jeśli umieszczenie jest możliwe, False w przeciwnym razie.
-        """
-        pass
+    def get_ship_by_name(self, ship_name):
+        for ship in self.ships.items():
+            chosen_ship = ship[0]
+            ship_number = self.get_ship_number(chosen_ship)
+            name = self.get_ship_name(ship_number)
+            if name == ship_name:
+                return chosen_ship
+        return None
 
-    def receive_attack(self, x, y):
-        """
-        Sprawdza, czy atak przeciwnika trafił w statek na planszy gracza.
-        :param x: Współrzędna x ataku.
-        :param y: Współrzędna y ataku.
-        :return: True, jeśli atak trafił w statek, False w przeciwnym razie.
-        """
-        pass
+    def check_valid_placement(self, ship, x, y, direction, player):
+        x -= 1
+        y -= 1
+        ship_number = self.get_ship_number(ship)
+        size = self.get_ship_size(ship)
 
-    def check_game_over(self):
-        """
-        Sprawdza, czy gra się zakończyła (czy wszystkie statki zostały zatopione).
-        :return: True, jeśli gra się zakończyła, False w przeciwnym razie.
-        """
-        pass
+        if direction == 'horizontal':
+            if x + size > self.board_size:
+                return False  # Statek wychodzi poza granice planszy
+            for i in range(size):
+                if player == 1:
+                    if self.player_board[y][x + i] != 0 and self.player_board[y][x + i] != ship_number:
+                        print(f"Invalid placement for {ship} at position ({x+1}, {y+1}) with direction {direction}")
+                        return False  # Istnieje już statek na tej pozycji
+                else:
+                    if self.computer_board[y][x + i] != 0 and self.computer_board[y][x + i] != ship_number:
+                        print(f"Invalid placement for {ship} at position ({x+1}, {y+1}) with direction {direction}")
+                        return False  # Istnieje już statek na tej pozycji
+
+        elif direction == 'vertical':
+            if y + size > self.board_size:
+                return False  # Statek wychodzi poza granice planszy
+            for i in range(size):
+                if player == 1:
+                    if self.player_board[y + i][x] != 0 and self.player_board[y + i][x] != ship_number:
+                        print(f"Invalid placement for {ship} at position ({x+1}, {y+1}) with direction {direction}")
+                        return False  # Istnieje już statek na tej pozycji
+                else:
+                    if self.computer_board[y + i][x] != 0 and self.computer_board[y + i][x] != ship_number:
+                        print(f"Invalid placement for {ship} at position ({x+1}, {y+1}) with direction {direction}")
+                        return False  # Istnieje już statek na tej pozycji
+
+        return True
+
+
+    def generate_computer_board(self):
+        for ship, size in self.ships.items():
+            placed = False
+            while not placed:
+                x = random.randint(1, self.board_size)
+                y = random.randint(1, self.board_size)
+                direction = random.choice(['horizontal', 'vertical'])
+                if self.check_valid_placement(ship, x, y, direction, 2):
+                    #self.place_ship(ship, x, y, direction,)
+                    placed = True
+                    # Zapisz statek na planszy przeciwnika
+                    ship_number = self.get_ship_number(ship)
+                    if direction == 'horizontal':
+                        for i in range(size):
+                            self.computer_board[y - 1][x + i - 1] = ship_number
+                    elif direction == 'vertical':
+                        for i in range(size):
+                            self.computer_board[y + i - 1][x - 1] = ship_number
+                    self.computer_ships[ship] = True
+        print('done')
+
+    def computer_turn(self):
+        if self.hits:
+            ship_number, game_over = self.target_phase()
+        else:
+            ship_number, game_over = self.hunt_phase()
+        return ship_number, game_over
+        
+    def hunt_phase(self):
+        while True:
+            x = random.randint(1, self.board_size)
+            y = random.randint(1, self.board_size)
+            if self.computer_guesses_board[y - 1][x - 1] == 0 and self.is_valid_target(x - 1, y - 1):
+                ship_number, game_over = self.receive_attack(y, x, 2)  # używamy indeksów 1-based
+                if ship_number is not None:
+                    self.hits.append((x - 1, y - 1))
+                return ship_number, game_over
+            
+    def is_valid_target(self, x, y):
+        if x >= 0 and x < self.board_size:
+            if x == 0 and self.computer_guesses_board[y][x + 1] != -1:
+                return True
+            elif x == 9 and self.computer_guesses_board[y][x - 1] != -1:
+                return True
+            elif 0 < x < self.board_size and self.computer_guesses_board[y][x + 1] != -1 or self.computer_guesses_board[y][x - 1] != -1:
+                return True
+        if y >= 0 and y < self.board_size:
+            if y == 0 and self.computer_guesses_board[y + 1][x] != -1:
+                return True
+            elif y == 9 and self.computer_guesses_board[y - 1][x] != -1:
+                return True
+            elif 0 < y < self.board_size and self.computer_guesses_board[y + 1][x] != -1 or self.computer_guesses_board[y - 1][x] != -1:
+                return True
+        return False
+    
+    def is_valid_target_around(self, x, y):
+        if 0 <= x < self.board_size and 0 <= y < self.board_size:
+            print(self.computer_guesses_board[y][x])
+            if self.computer_guesses_board[y][x] != -1:
+                return True
+        return  False
+            
+    def target_phase(self):
+        if not self.hits:
+            return self.hunt_phase()
+    
+        #last_hit = self.hits[-1]
+        # directions = [(0, 1), (1, 0), (0, -1), (-1, 0)]
+        # random.shuffle(directions)
+        orientation = None
+
+        if len(self.hits) > 1:
+             # Determine the orientation and the boundaries of the hits
+            min_x = min(self.hits, key=lambda hit: hit[0])[0]
+            max_x = max(self.hits, key=lambda hit: hit[0])[0]
+            min_y = min(self.hits, key=lambda hit: hit[1])[1]
+            max_y = max(self.hits, key=lambda hit: hit[1])[1]
+
+            if min_x == max_x:
+                orientation = 'horizontal'
+            elif min_y == max_y:
+                orientation = 'vertical'
+
+        if orientation == 'horizontal':
+            if self.is_valid_target_around(min_x, min_y - 1):
+                possible_moves.append((min_x, min_y - 1))
+            if self.is_valid_target_around(max_x, max_y + 1):
+                possible_moves.append((max_x, max_y + 1))
+        elif orientation == 'vertical':
+            if self.is_valid_target_around(min_x - 1, min_y):
+                possible_moves.append((min_x - 1, min_y))
+            if self.is_valid_target_around(max_x + 1, max_y):
+                possible_moves.append((max_x + 1, max_y))
+        else:
+            # If orientation is not known, check all adjacent cells
+            last_hit = self.hits[-1]
+            possible_moves = [
+                (last_hit[0] + dx, last_hit[1] + dy)
+                for dx, dy in [(0, 1), (1, 0), (0, -1), (-1, 0)]
+                if self.is_valid_target_around(last_hit[0] + dx, last_hit[1] + dy)
+            ]
+
+        random.shuffle(possible_moves)
+
+        move = possible_moves[0]
+        nx, ny = move[0], move[1]
+        ship_number, game_over = self.receive_attack(ny + 1, nx + 1, 2)  # używamy indeksów 1-based
+        if ship_number is not None:
+            self.hits.append((nx, ny))
+            if self.is_ship_sunk(ship_number):
+                self.hits = []
+            return ship_number, game_over
+    
+    def receive_attack(self, y, x, player):
+        x -= 1
+        y -= 1
+        if player == 1:
+            if self.computer_board[x][y] > 0:  
+                ship_number = self.computer_board[x][y]
+                self.computer_board[x][y] = -1  
+                self.player_guesses_board[x][y] = ship_number
+                ship_name = self.get_ship_name(ship_number)
+                ship = self.get_ship_by_name(ship_name)
+                ship_sank = self.check_if_ship_sank(self.computer_board, ship_number)
+                if ship_sank:
+                    self.computer_ships[ship] = False
+                    if self.check_game_over(self.computer_ships):
+                        return ship_number, True
+                return ship_number, False
+            else:
+                self.player_guesses_board[x][y] = -1
+                return None, False
+        elif player == 2:
+            if self.player_board[x][y] > 0: 
+                ship_number = self.player_board[x][y] 
+                self.player_board[x][y] = -1  
+                self.computer_guesses_board[x][y] = ship_number
+                ship_name = self.get_ship_name(ship_number)
+                ship = self.get_ship_by_name(ship_name)
+                ship_sank = self.check_if_ship_sank(self.player_board, ship_number)
+                if ship_sank:
+                    self.player_ships[ship] = False
+                    if self.check_game_over(self.player_ships):
+                        return ship_number, True
+                return ship_number, False  
+            else:
+                self.computer_guesses_board[x][y] = -1
+                return None, False 
+        
+    def check_if_ship_sank(self, board, ship_number):
+        for row in board:
+            if ship_number in row:
+                return False
+        return True
+    
+    def is_ship_sunk(self, ship_number):
+        for row in self.computer_board:
+            if ship_number in row:
+                return False
+        return True
+
+    def check_game_over(self, ships_to_ckeck):
+        for ship in ships_to_ckeck:
+            if ships_to_ckeck[ship] == True:
+                return False
+        return True

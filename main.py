@@ -6,14 +6,11 @@ def main():
     app = QApplication([])
 
     # Inicjalizacja logiki gry
-    game_logic = GameLogic()
+    #game_logic = GameLogic()
 
     # Inicjalizacja interfejsu użytkownika
-    gui = GUIPyQt(game_logic)
+    gui = GUIPyQt()
     gui.show()
-
-    # Połączenie logiki gry z interfejsem użytkownika
-    gui.set_game_logic(game_logic)
 
     # Rozpoczęcie pętli głównej
     app.exec_()
