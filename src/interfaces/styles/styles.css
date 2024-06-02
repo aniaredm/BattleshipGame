@@ -1,0 +1,27 @@
+#Carrier_5 {
+    background: #add8e6;
+}
+
+#Battleship_4 {
+    background: #ffb6c1;
+}
+
+#Cruiser_3 {
+    background: #90ee90;
+}
+
+#Submarine_3 {
+    background: #ffffe0;
+}
+
+#Destroyer_2 {
+    background: #e0ffff;
+}
+
+window {
+    background-color: #d6e7ec;
+} 
+
+.event-box-border {
+    border: 1px solid black;
+}
