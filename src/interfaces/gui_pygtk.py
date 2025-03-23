@@ -314,8 +314,6 @@ class GameWindow(Gtk.Window):
         red_hex = format(int(button_color.red * 255), '02x')
         green_hex = format(int(button_color.green * 255), '02x')
         blue_hex = format(int(button_color.blue * 255), '02x')
-
-        # Składanie koloru w postaci heksadecymalnej
         color_hex = f"#{red_hex}{green_hex}{blue_hex}"
         return color_hex
 
@@ -333,7 +331,7 @@ class GameWindow(Gtk.Window):
             self.showMessageBox("Information", "Place all your ships first")
 
     def updateUI(self):
-        # before starting new game remove all buttons related to placing ships on the grid
+        # remove all buttons related to placing ships on the grid before starting new game
         self.main_box.remove(self.orientation_box)
         self.main_box.remove(self.set_board_button_box)
         self.main_box.remove(self.ship_buttons_box)
@@ -390,7 +388,7 @@ class MyWindow(Gtk.Window):
         self.add(self.grid)
 
         os.chdir(os.path.dirname(os.path.abspath(__file__)))
-        css_path = os.path.join("style", "styles.css")
+        css_path = os.path.join("styles", "styles.css")
 
         css_provider = Gtk.CssProvider()
         css_provider.load_from_path(css_path)

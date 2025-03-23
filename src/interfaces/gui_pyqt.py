@@ -282,7 +282,7 @@ class GameWindow(QMainWindow):
             QMessageBox.information(self, "Information", "Place all your ships first")
     
     def updateUI(self):
-        # before starting new game remove all buttons related to placing ships on the grid
+        # remove all buttons related to placing ships on the grid before starting new game
         for i in reversed(range(self.ship_buttons_layout.count())):
             widget = self.ship_buttons_layout.itemAt(i).widget()
             if widget is not None:
@@ -360,7 +360,6 @@ class GUIPyQt(QMainWindow):
         about_action.triggered.connect(self.show_description)
         help_menu.addAction(about_action)
 
-
     def show_description(self):
         description = (
             "BattleshipGame\n\n"
@@ -371,7 +370,6 @@ class GUIPyQt(QMainWindow):
             "The goal is to sink all of the computer's ships by correctly guessing their locations before the computer sinks yours."
         )
         QMessageBox.information(self, "Application Description", description)
-
 
     def button1Clicked(self):
         self.game_logic = GameLogic()
