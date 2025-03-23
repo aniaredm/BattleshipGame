@@ -33,7 +33,7 @@ Depending on your preference, you can launch the game in either mode.
 ### 1️. Clone the Repository  
 
 ```sh
-git clone https://github.com/your_username/BattleshipGame.git
+git clone https://github.com/aniaredm/BattleshipGame.git
 cd BattleshipGame
 ```
 
